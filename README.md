@@ -1,2 +1,2 @@
-# Light-RISCV
-Build your RISC-V CPU in one night with SpinalHDL 
+# LightCore
+Build your light RISC-V CPU in one night with SpinalHDL 
