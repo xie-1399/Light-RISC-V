@@ -32,27 +32,35 @@ SOFTWARE.
 */
 
 /* build the pipeline in the LightCore */
-
+package LightCore
 import spinal.core._
 import spinal.lib._
 import spinal.lib.misc.pipeline._
-import Global._
+import global._
 
-class Pipeline() extends Component {
+class pipeline() extends Component {
 
   val io = new Bundle{
-    val instruction = in Bits(INSTRUCTION_WIDTH bits)
+    val instruction = slave Stream Bits(INSTRUCTION_WIDTH bits)
+    val physicalAddress = master Stream UInt(PHYSICAL_WIDTH bits)
   }
 
-  val resetPC = Reg(UInt(PC_WIDTH bits)).init(CPUReset)
   val builder = new NodesBuilder()
 
   /* fetch stage */
   val fecth = new builder.Node{
-    PC := resetPC
+    /* control the pc value */
+    val pc_ctrl = new pc_ctrl()
+    pc_ctrl.io.pc <> io.physicalAddress
 
+    PC := pc_ctrl.io.pc.payload
+    INSTRUCTION := io.instruction.payload
 
-
+    // Todo
+    io.instruction.ready.set()
+    pc_ctrl.io.halt.clear()
+    pc_ctrl.io.jump.valid.clear()
+    pc_ctrl.io.jump.payload.clearAll()
   }
   /* decode stage */
   val decode = new builder.Node{
@@ -71,8 +79,4 @@ class Pipeline() extends Component {
   }
 
   builder.genStagedPipeline()
-}
-
-object Pipeline extends App{
-  SpinalSystemVerilog(new Pipeline())
 }
